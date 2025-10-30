@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌌 Leadership Dashboard | Planetary Restoration Archive</title>
+<meta name="description" content="Collaborative leadership dashboard for global problem-solving. Track missions, plant ideas, and join collective restoration efforts.">
+<meta name="keywords" content="leadership, restoration, global issues, dashboard, sustainability, Habitica, IndexedDB, WebLLM, peace, ecology, open-source">
+<meta name="author" content="Foster + Navi">
+<meta property="og:title" content="Leadership Dashboard | Planetary Restoration Archive">
+<meta property="og:description" content="Empower your leadership and contribute to world issues through interactive missions and global collaboration.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://planetaryrestorationarchive.com/ref/crypto/sol/custom/gpt/rare/peace/engineer/hybrid">
+<meta name="theme-color" content="#060b1a">
+<style>
+:root {
+  --bg: #050a18;
+  --accent: #00ffc6;
+  --panel: #0b1428;
+  --text: #e4f4ff;
+  --card: #101c33;
+  --ok: #22c55e;
+  --warn: #fbbf24;
+  --err: #ef4444;
+  --font: 'Inter', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
+main { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 2rem; backdrop-filter: blur(5px); }
+h1 { font-size: 2.2rem; margin-bottom: 0.6rem; color: var(--accent); }
+p.lead { max-width: 600px; margin: 0 auto 1rem; line-height: 1.6; opacity: 0.9; }
+section { background: var(--card); border-radius: 1rem; padding: 1rem 2rem; margin: 1rem 0; box-shadow: 0 0 20px rgba(0,255,200,0.15); width: 90%; max-width: 900px; }
+button { background: var(--accent); border: none; border-radius: 0.5rem; color: #001a12; padding: 0.8rem 1.2rem; cursor: pointer; font-weight: bold; margin: 0.5rem; transition: 0.3s; }
+button:hover { background: #00ffaa; }
+.input-row { display: flex; justify-content: center; gap: 0.5rem; margin: 1rem 0; }
+input, select { padding: 0.5rem 0.8rem; border-radius: 0.4rem; border: none; background: var(--panel); color: var(--text); }
+.log { max-height: 150px; overflow-y: auto; text-align: left; background: var(--panel); padding: 0.5rem; border-radius: 0.5rem; font-size: 0.9rem; }
+footer { margin-top: 1rem; font-size: 0.8rem; opacity: 0.6; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<main>
+  <h1>🌍 Leadership Dashboard</h1>
+  <p class="lead">Empower yourself and others to tackle global challenges. Record your actions, earn XP, and join the planetary restoration movement.</p>
+
+  <section id="mission">
+    <h2>🧭 New Mission</h2>
+    <div class="input-row">
+      <input type="text" id="missionTitle" placeholder="Mission title (e.g. Plant 10 trees)">
+      <select id="missionType">
+        <option value="Climate">🌱 Climate</option>
+        <option value="Peace">🕊️ Peace</option>
+        <option value="Education">📘 Education</option>
+        <option value="Health">💊 Health</option>
+        <option value="Equity">⚖️ Equity</option>
+      </select>
+      <button onclick="addMission()">Add</button>
+    </div>
+    <div class="log" id="missionLog"></div>
+  </section>
+
+  <section id="progress">
+    <h2>📈 My Progress</h2>
+    <p id="xpText">XP: 0</p>
+    <progress id="xpBar" value="0" max="100" style="width:80%;height:20px;"></progress>
+  </section>
+
+  <section id="global">
+    <h2>🌐 Global Goals</h2>
+    <p class="lead">Every mission contributes to shared goals inspired by the UN SDGs. Together, we can visualize planetary recovery in real time.</p>
+    <button onclick="syncData()">🔁 Sync with Global Ledger</button>
+    <div class="log" id="syncLog"></div>
+  </section>
+
+  <footer>© 2025 Foster + Navi | Planetary Restoration Archive</footer>
+</main>
+
+<script>
+// Animated starfield
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let w, h, stars = [];
+function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+for (let i = 0; i < 300; i++) stars.push({x: Math.random()*w, y: Math.random()*h, z: Math.random()*w});
+function animate() {
+  ctx.fillStyle = 'rgba(5,10,24,0.6)'; ctx.fillRect(0,0,w,h);
+  for (let s of stars) {
+    s.z -= 0.5; if (s.z <= 0) s.z = w;
+    let k = 128 / s.z; let px = s.x*k + w/2; let py = s.y*k + h/2;
+    if (px>=0 && px<w && py>=0 && py<h) {
+      let size = (1 - s.z/w) * 2; ctx.fillStyle = '#00ffc6'; ctx.fillRect(px, py, size, size);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+animate();
+
+// IndexedDB setup
+let db;
+const request = indexedDB.open("LeadershipDB", 1);
+request.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("missions", { keyPath: "id", autoIncrement: true });
+};
+request.onsuccess = e => { db = e.target.result; displayMissions(); };
+
+function addMission() {
+  const title = document.getElementById("missionTitle").value.trim();
+  const type = document.getElementById("missionType").value;
+  if (!title) return;
+  const tx = db.transaction("missions", "readwrite");
+  tx.objectStore("missions").add({ title, type, date: new Date(), xp: 10 });
+  tx.oncomplete = () => { displayMissions(); updateXP(10); };
+}
+
+function displayMissions() {
+  const log = document.getElementById("missionLog");
+  const tx = db.transaction("missions", "readonly");
+  const store = tx.objectStore("missions");
+  const req = store.getAll();
+  req.onsuccess = () => {
+    log.innerHTML = req.result.map(m => `<div>✅ [${m.type}] ${m.title}</div>`).join("");
+  };
+}
+
+let xp = 0;
+function updateXP(amt) {
+  xp += amt;
+  const xpBar = document.getElementById("xpBar");
+  const xpText = document.getElementById("xpText");
+  xpBar.value = xp % 100;
+  xpText.textContent = `XP: ${xp}`;
+}
+
+function syncData() {
+  const log = document.getElementById("syncLog");
+  log.innerHTML = "🌐 Syncing with global ledger... (simulation)";
+  setTimeout(() => {
+    log.innerHTML = "✅ Missions uploaded to Planetary Restoration Archive node.";
+  }, 2000);
+}
+</script>
+</body>
+</html>
