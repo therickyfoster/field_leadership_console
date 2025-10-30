@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ============================= -->
+  <!-- Meta + SEO                    -->
+  <!-- ============================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Field Leadership Console — Foster + Navi</title>
+  <meta name="description" content="A quiet-guardian dashboard: animated starfield, local-first to-do with IndexedDB, optional Habitica sync, real-time status tiles, and WebLLM hooks for on-device coaching." />
+  <meta name="theme-color" content="#0a0f1f" />
+  <meta property="og:title" content="Field Leadership Console — Foster + Navi" />
+  <meta property="og:description" content="Lead by example. Absorb without corruption. Transmute noise into coherence." />
+  <meta property="og:type" content="website" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Schema.org (presentation schema hook) -->
+  <script type="application/ld+json" id="pra-schema">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Field Leadership Console",
+    "applicationCategory": "ProductivityApplication",
+    "operatingSystem": "Any",
+    "author": { "@type": "Person", "name": "Foster + Navi" },
+    "url": "planetaryrestorationarchive.com/ref/crypto/sol/custom/gpt/rare/peace/engineer/hybrid",
+    "description": "Hybrid guardian console aligning real-world action with restorative outcomes. IndexedDB-first; optional Habitica sync; WebLLM coaching hooks."
+  }
+  </script>
+
+  <!-- Fonts (system stack only to keep standalone) -->
+  <style>
+    :root{
+      --bg:#0a0f1f; --ink:#e8f0ff; --dim:#a7b3cc; --acc:#7cd6ff; --acc2:#ff66cc;
+      --card:#101a2e; --edge:#1a2540; --ok:#34d399; --warn:#fbbf24; --bad:#ef4444;
+      --mut:#66768f; --glow:0 0 30px rgba(124,214,255,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;}
+    a{color:var(--acc)}
+    /* Layout */
+    #starstage{position:fixed;inset:0;z-index:-1;background:radial-gradient(1200px 800px at 60% 40%, rgba(124,214,255,.08), transparent 60%)}
+    .shell{display:grid;grid-template-rows:auto 1fr;min-height:100dvh}
+    header{display:flex;gap:.75rem;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--edge);backdrop-filter:blur(8px);background:linear-gradient(to bottom, rgba(10,15,31,.7), rgba(10,15,31,.3))}
+    header h1{font-size:1.05rem;margin:0;letter-spacing:.3px}
+    .tag{font-size:.75rem;color:var(--dim);padding:2px 8px;border:1px solid var(--edge);border-radius:999px}
+    .grid{display:grid;gap:16px;padding:16px;grid-template-columns: 340px 1fr}
+    @media (max-width: 1024px){.grid{grid-template-columns:1fr}}
+    .panel{background:linear-gradient(180deg, rgba(16,26,46,.85), rgba(16,26,46,.55));border:1px solid var(--edge);border-radius:16px;box-shadow:var(--glow)}
+    .panel h2{font-size:.95rem;letter-spacing:.2px;color:var(--dim);margin:0 0 8px}
+    .panel .body{padding:14px}
+    .row{display:flex;gap:10px;align-items:center}
+    .btn{appearance:none;border:1px solid var(--edge);background:linear-gradient(180deg,#0f1a2e,#0c1526);color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-size:.9rem}
+    .btn:hover{border-color:#2c3a66;box-shadow:0 0 0 2px rgba(124,214,255,.08) inset}
+    .btn.ghost{background:transparent}
+    input[type="text"], input[type="password"], input[type="url"], input[type="number"], textarea{
+      width:100%;padding:10px 12px;border-radius:10px;background:#0c1526;border:1px solid var(--edge);color:var(--ink);outline:none
+    }
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{padding:6px 10px;border:1px solid var(--edge);border-radius:999px;color:var(--dim);font-size:.8rem}
+    .statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    @media (max-width:800px){.statgrid{grid-template-columns:repeat(2,1fr)}}
+    .stat{padding:12px;border:1px solid var(--edge);border-radius:12px;background:linear-gradient(180deg, rgba(14,21,41,.9), rgba(12,18,36,.6))}
+    .stat .k{font-size:1.25rem}
+    .stat .t{font-size:.75rem;color:var(--dim)}
+    .todo-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px;border:1px solid var(--edge);border-radius:12px;background:#0b1428}
+    .todo-item.done{opacity:.7;text-decoration:line-through}
+    .badge{font-size:.7rem;color:#9ac6ff;border:1px solid var(--edge);padding:2px 6px;border-radius:8px}
+    .pill{font-size:.7rem;padding:2px 8px;border-radius:999px;background:#0e1a34;border:1px solid var(--edge)}
+    .footer{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--edge);color:var(--mut)}
+    .hint{color:var(--dim);font-size:.8rem}
+    /* Floating nebula highlights */
+    .nebula{position:fixed;inset:auto;pointer-events:none;filter:blur(40px);opacity:.2}
+    .nebula.n1{top:-120px;left:-120px;width:380px;height:380px;background:radial-gradient(circle at 30% 30%, #7cd6ff, transparent 60%)}
+    .nebula.n2{right:-160px;bottom:-160px;width:420px;height:420px;background:radial-gradient(circle at 70% 70%, #ff66cc, transparent 60%)}
+    /* Minimal modal */
+    dialog{border:1px solid var(--edge);border-radius:16px;background:#0b1426;color:var(--ink);max-width:560px;width:92%}
+    dialog::backdrop{background:rgba(0,0,0,.4)}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8rem; padding:2px 6px;border:1px solid var(--edge);border-radius:6px;background:#0e1a34;color:#bcd2ff}
+    .progress{height:8px;border-radius:999px;background:#0c1526;border:1px solid var(--edge);overflow:hidden}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg, #7cd6ff, #ff66cc)}
+  </style>
+</head>
+<body>
+  <!-- Starfield canvas -->
+  <div id="starstage">
+    <canvas id="starfield"></canvas>
+  </div>
+  <div class="nebula n1"></div>
+  <div class="nebula n2"></div>
+
+  <div class="shell">
+    <header>
+      <div class="row">
+        <h1>Field Leadership Console</h1>
+        <span class="tag">absorb → transmute → emit coherence</span>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="btnInstall">Install App</button>
+        <button class="btn" id="btnQuickCapture">Quick Capture</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- Left: To-Do + Intake -->
+      <section class="panel">
+        <div class="body">
+          <h2>Action Intake</h2>
+          <div class="row" style="margin:8px 0 12px">
+            <input id="todoText" type="text" placeholder="Type an action that increases coherence…" />
+          </div>
+          <div class="row">
+            <select id="todoContext" class="pill" style="padding:8px 10px">
+              <option value="self">self</option>
+              <option value="family">family</option>
+              <option value="community">community</option>
+              <option value="work">work</option>
+              <option value="restoration">restoration</option>
+            </select>
+            <select id="todoEnergy" class="pill" style="padding:8px 10px">
+              <option value="low">low energy</option>
+              <option value="medium">medium</option>
+              <option value="high">high impact</option>
+            </select>
+            <button class="btn" id="addTodo">Add</button>
+          </div>
+
+          <div class="chips" style="margin:12px 0">
+            <span class="chip">Shift: <span class="kbd">E</span> capture</span>
+            <span class="chip">Enter: quick add</span>
+            <span class="chip">Alt+Click: edit</span>
+          </div>
+
+          <h2 style="margin-top:12px">Today’s Field List</h2>
+          <div id="todoList" style="display:grid;gap:10px;margin-top:8px"></div>
+
+          <div style="margin-top:12px" class="row">
+            <button class="btn ghost" id="btnClearDone">Clear Completed</button>
+            <button class="btn ghost" id="btnExport">Export JSON</button>
+            <button class="btn ghost" id="btnImport">Import</button>
+            <input id="importFile" type="file" accept="application/json" style="display:none" />
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--edge);margin:14px 0" />
+          <h2>Sync</h2>
+          <div class="row">
+            <button class="btn" id="btnHabitica">Connect Habitica</button>
+            <span class="hint" id="habiticaStatus">Not connected</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Realtime Dashboard + WebLLM -->
+      <section class="panel">
+        <div class="body">
+          <h2>Realtime Dashboard</h2>
+          <div class="statgrid" id="stats">
+            <div class="stat"><div class="k" id="kFocus">—</div><div class="t">Focus (5-min)</div></div>
+            <div class="stat"><div class="k" id="kFlow">—</div><div class="t">Flow (rolling)</div></div>
+            <div class="stat"><div class="k" id="kTasks">0</div><div class="t">Open Actions</div></div>
+            <div class="stat"><div class="k" id="kDone">0</div><div class="t">Completed Today</div></div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="progress" aria-label="Daily coherence">
+              <i id="barCoherence" style="width:0%"></i>
+            </div>
+            <div class="hint" style="margin-top:6px">Coherence score updates as you check items and maintain focus.</div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--edge);margin:14px 0" />
+
+          <h2>On-Device Coach (WebLLM)</h2>
+          <div id="llmBox" class="row" style="align-items:flex-start">
+            <textarea id="llmInput" rows="3" placeholder="Ask for reframing, micro-prompts, or coherence nudges…"></textarea>
+            <div class="row" style="flex-direction:column;gap:8px">
+              <button class="btn" id="btnLLMLoad">Load WebLLM</button>
+              <button class="btn ghost" id="btnLLMAsk">Ask</button>
+            </div>
+          </div>
+          <div id="llmOut" style="margin-top:10px;white-space:pre-wrap;color:#cfe3ff"></div>
+
+          <hr style="border:none;border-top:1px solid var(--edge);margin:14px 0" />
+          <h2>Signals</h2>
+          <div class="chips" id="signalBar"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>Local-first. Offline-ready. Version <span id="ver">1.0.0</span></div>
+      <div class="row">
+        <span class="hint">SW:</span><span id="swState" class="badge">registering…</span>
+        <span class="hint">DB:</span><span id="dbState" class="badge">init…</span>
+        <span class="hint">Net:</span><span id="netState" class="badge">—</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Habitica Modal -->
+  <dialog id="habiticaModal">
+    <form method="dialog" class="body" style="padding:16px">
+      <h2 style="margin-bottom:8px">Connect Habitica</h2>
+      <p class="hint" style="margin-bottom:10px">Your credentials are stored locally in IndexedDB. Nothing leaves your device unless you click Sync.</p>
+      <label class="hint">User ID</label>
+      <input id="hbUser" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+      <label class="hint" style="margin-top:8px">API Token</label>
+      <input id="hbToken" type="password" placeholder="••••••••••••••••••••••••••••••••" />
+      <label class="hint" style="margin-top:8px">API URL (optional)</label>
+      <input id="hbUrl" type="url" placeholder="https://habitica.com/api/v3" />
+      <div class="row" style="justify-content:flex-end;margin-top:12px">
+        <button class="btn ghost" value="cancel">Cancel</button>
+        <button class="btn" id="hbSave" value="default">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Templates -->
+  <template id="todoTpl">
+    <div class="todo-item">
+      <input type="checkbox" class="tcheck" />
+      <div>
+        <div class="row" style="justify-content:space-between">
+          <div class="text"></div>
+          <div class="row" style="gap:6px">
+            <span class="pill ctx"></span>
+            <span class="pill eng"></span>
+          </div>
+        </div>
+        <div class="hint meta"></div>
+      </div>
+      <div class="row">
+        <button class="btn ghost tedit" title="Edit">✎</button>
+        <button class="btn ghost tsync" title="Sync to Habitica">⇅</button>
+        <button class="btn ghost tdel" title="Delete">✖</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- ============================= -->
+  <!-- Scripts                       -->
+  <!-- ============================= -->
+  <script>
+  /***************
+   * Utilities
+   ***************/
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+  const h = (tag, props={}, ...kids) => {
+    const el = document.createElement(tag);
+    Object.entries(props).forEach(([k,v]) => {
+      if (k === 'class') el.className = v;
+      else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k,v);
+    });
+    kids.flat().forEach(k => el.append(k.nodeType ? k : document.createTextNode(k)));
+    return el;
+  };
+
+  /***************
+   * Local Version + Network
+   ***************/
+  const VERSION = "1.0.0";
+  $("#ver").textContent = VERSION;
+  function setBadge(id, text, color){
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.style.borderColor = color || "var(--edge)";
+    el.style.color = color || "var(--dim)";
+  }
+  function updateNet(){
+    setBadge("netState", navigator.onLine? "online":"offline", navigator.onLine? "var(--ok)":"var(--warn)");
+  }
+  addEventListener("online", updateNet);
+  addEventListener("offline", updateNet);
+  updateNet();
+
+  /***************
+   * Service Worker (inline)
+   ***************/
+  (function registerSW(){
+    if(!('serviceWorker' in navigator)) { setBadge("swState","unsupported","var(--warn)"); return; }
+    const swCode = `
+      const CACHE = "field-console-${VERSION}";
+      const ASSETS = self.__ASSETS || [];
+      self.addEventListener("install", e=>{
+        e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));
+      });
+      self.addEventListener("activate", e=>{
+        e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+      });
+      self.addEventListener("fetch", e=>{
+        const url = new URL(e.request.url);
+        // Network-first for API, cache-first for same-origin static
+        if(url.origin === location.origin){
+          e.respondWith(caches.match(e.request).then(r=> r || fetch(e.request).then(res=>{
+            const clone = res.clone();
+            caches.open(CACHE).then(c=>c.put(e.request, clone));
+            return res;
+          })));
+        } else {
+          e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
+        }
+      });
+    `;
+    const blob = new Blob([swCode], {type:"text/javascript"});
+    const swURL = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swURL).then(()=>setBadge("swState","active","var(--ok)"))
+      .catch(()=>setBadge("swState","failed","var(--bad)"));
+  })();
+
+  /***************
+   * IndexedDB (tiny wrapper)
+   ***************/
+  const DB = (()=> {
+    const DB_NAME = "field_console_db";
+    const DB_VER = 1;
+    let _db;
+    function open(){
+      return new Promise((resolve, reject)=>{
+        const req = indexedDB.open(DB_NAME, DB_VER);
+        req.onupgradeneeded = (e)=>{
+          const db = e.target.result;
+          if(!db.objectStoreNames.contains('todos')) db.createObjectStore('todos',{keyPath:'id'});
+          if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta',{keyPath:'k'});
+          if(!db.objectStoreNames.contains('habitica')) db.createObjectStore('habitica',{keyPath:'k'});
+        };
+        req.onsuccess = (e)=>{ _db = e.target.result; setBadge("dbState","ready","var(--ok)"); resolve(_db); };
+        req.onerror = ()=>{ setBadge("dbState","error","var(--bad)"); reject(req.error); };
+      });
+    }
+    function tx(name, mode='readonly'){ return _db.transaction(name, mode).objectStore(name); }
+    async function put(store, value){ return new Promise((res,rej)=>{ const r = tx(store,'readwrite').put(value); r.onsuccess=()=>res(true); r.onerror=()=>rej(r.error); }); }
+    async function get(store, key){ return new Promise((res,rej)=>{ const r = tx(store).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+    async function del(store, key){ return new Promise((res,rej)=>{ const r = tx(store,'readwrite').delete(key); r.onsuccess=()=>res(true); r.onerror=()=>rej(r.error); }); }
+    async function all(store){ return new Promise((res,rej)=>{ const r = tx(store).getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error); }); }
+    return {open, put, get, del, all};
+  })();
+  await DB.open();
+
+  /***************
+   * Starfield (photoreal-ish, shaderless)
+   * Canvas2D with depth layers, twinkle & parallax
+   ***************/
+  (function starfield(){
+    const cvs = document.getElementById('starfield');
+    const ctx = cvs.getContext('2d');
+    const DPR = Math.min(2, window.devicePixelRatio||1);
+    let W, H, stars=[];
+    function resize(){
+      W = cvs.width = Math.floor(innerWidth * DPR);
+      H = cvs.height = Math.floor(innerHeight * DPR);
+    }
+    resize(); addEventListener('resize', resize);
+
+    const LAYERS = 3;
+    const COUNT = 450; // total stars
+    function init(){
+      stars=[];
+      for(let i=0;i<COUNT;i++){
+        const layer = Math.floor(Math.random()*LAYERS); // 0..2
+        stars.push({
+          x: Math.random()*W,
+          y: Math.random()*H,
+          z: layer,
+          s: (layer+1) * (0.4 + Math.random()*0.7),
+          tw: Math.random()*Math.PI*2,
+          hue: layer===0? 210+Math.random()*20 : (layer===1? 200+Math.random()*30 : 195+Math.random()*40)
+        });
+      }
+    }
+    init();
+
+    let parx=0, pary=0;
+    addEventListener('pointermove', (e)=>{
+      const nx = (e.clientX / innerWidth - .5);
+      const ny = (e.clientY / innerHeight - .5);
+      parx = nx * 20 * DPR;
+      pary = ny * 20 * DPR;
+    });
+
+    function nebula(x,y,r, color){
+      const g = ctx.createRadialGradient(x,y, r*0.2, x,y, r);
+      g.addColorStop(0, color);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function tick(t){
+      ctx.clearRect(0,0,W,H);
+      // soft background vignette
+      ctx.fillStyle = 'rgba(10,15,31,0.85)'; ctx.fillRect(0,0,W,H);
+
+      // faint nebulae
+      nebula(W*0.7+Math.sin(t*0.0002)*60, H*0.35, 280*DPR, 'rgba(124,214,255,0.08)');
+      nebula(W*0.25+Math.cos(t*0.00025)*40, H*0.65, 320*DPR, 'rgba(255,102,204,0.06)');
+
+      for(const st of stars){
+        const depth = (st.z+1);
+        const px = st.x + parx/depth;
+        const py = st.y + pary/depth;
+
+        // twinkle
+        const tw = (Math.sin(t*0.002 + st.tw) + 1)/2; // 0..1
+        const alpha = 0.35 + tw*0.65;
+        const size = st.s * (0.6 + tw*0.5);
+
+        ctx.beginPath();
+        ctx.fillStyle = `hsla(${st.hue}, 80%, ${70+tw*20}%, ${alpha})`;
+        ctx.shadowColor = `hsla(${st.hue}, 90%, 60%, ${alpha*0.6})`;
+        ctx.shadowBlur = 6*depth;
+        ctx.arc(px, py, size, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+
+  /***************
+   * To-Do Model
+   ***************/
+  const Todos = {
+    async list(){ return (await DB.all('todos')).sort((a,b)=> (a.done===b.done? b.ct - a.ct : a.done - b.done)); },
+    async add(text, context, energy){
+      const item = { id: crypto.randomUUID(), text, context, energy, done:false, ct: Date.now(), ut: Date.now(), origin:"local" };
+      await DB.put('todos', item); return item;
+    },
+    async toggle(id, done){ const it = await DB.get('todos', id); if(!it) return; it.done=done; it.ut=Date.now(); await DB.put('todos', it); },
+    async remove(id){ await DB.del('todos', id); },
+    async update(id, patch){ const it = await DB.get('todos', id); if(!it) return; Object.assign(it, patch, {ut:Date.now()}); await DB.put('todos', it); }
+  };
+
+  /***************
+   * Habitica Client (optional)
+   ***************/
+  const Habitica = {
+    async getCreds(){
+      const u = await DB.get('habitica','user'); const t = await DB.get('habitica','token'); const b = await DB.get('habitica','base');
+      if(u && t) return {user:u.v, token:t.v, base:(b && b.v)||"https://habitica.com/api/v3"};
+      return null;
+    },
+    async saveCreds(user, token, base){
+      await DB.put('habitica',{k:'user', v:user});
+      await DB.put('habitica',{k:'token', v:token});
+      await DB.put('habitica',{k:'base', v:base||"https://habitica.com/api/v3"});
+    },
+    async fetch(path, opts={}){
+      const creds = await Habitica.getCreds(); if(!creds) throw new Error("No Habitica creds");
+      const headers = Object.assign({
+        'x-api-user': creds.user,
+        'x-api-key': creds.token,
+        'Content-Type':'application/json'
+      }, opts.headers||{});
+      const res = await fetch(`${creds.base}${path}`, {...opts, headers});
+      if(!res.ok) throw new Error("Habitica API error");
+      return res.json();
+    },
+    async syncTask(todo){
+      // Upsert as a 'todo' task
+      const payload = { text: todo.text, type:'todo', notes:`context:${todo.context} energy:${todo.energy} origin:field-console`, completed: !!todo.done };
+      // naive create every time; a real impl would map ids
+      return Habitica.fetch('/tasks/user', { method:'POST', body: JSON.stringify(payload)});
+    },
+    async status(){
+      try {
+        const d = await Habitica.fetch('/user');
+        return { ok:true, hp: d.data.stats.hp, xp: d.data.stats.exp, lvl:d.data.stats.lvl, gp:d.data.stats.gp };
+      } catch(e){ return {ok:false}; }
+    }
+  };
+
+  /***************
+   * UI Bindings
+   ***************/
+  const listEl = $("#todoList");
+  const tpl = $("#todoTpl");
+  async function renderList(){
+    const items = await Todos.list();
+    $("#kTasks").textContent = items.filter(i=>!i.done).length;
+    $("#kDone").textContent = items.filter(i=>i.done).length;
+    const doneCount = items.filter(i=>i.done).length;
+    const allCount = Math.max(1, items.length);
+    $("#barCoherence").style.width = (doneCount/allCount*100).toFixed(1)+"%";
+
+    listEl.innerHTML = "";
+    items.forEach(item=>{
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      node.dataset.id = item.id;
+      node.querySelector(".tcheck").checked = !!item.done;
+      node.querySelector(".text").textContent = item.text;
+      node.querySelector(".ctx").textContent = item.context;
+      node.querySelector(".eng").textContent = item.energy;
+      node.querySelector(".meta").textContent = new Date(item.ct).toLocaleString();
+      if(item.done) node.classList.add("done");
+
+      node.querySelector(".tcheck").addEventListener("change", async (e)=>{
+        await Todos.toggle(item.id, e.target.checked);
+        renderList();
+      });
+      node.querySelector(".tdel").addEventListener("click", async ()=>{
+        await Todos.remove(item.id); renderList();
+      });
+      node.querySelector(".tedit").addEventListener("click", async ()=>{
+        const txt = prompt("Edit text", item.text); if(txt===null) return;
+        const ctx = prompt("Context (self/family/community/work/restoration)", item.context) || item.context;
+        const en = prompt("Energy (low/medium/high)", item.energy) || item.energy;
+        await Todos.update(item.id, {text:txt.trim(), context:ctx, energy:en}); renderList();
+      });
+      node.querySelector(".tsync").addEventListener("click", async ()=>{
+        const creds = await Habitica.getCreds();
+        if(!creds){ openHabiticaModal(); return; }
+        node.querySelector(".tsync").textContent = "⇅…";
+        try { await Habitica.syncTask(item); node.querySelector(".tsync").textContent = "⇅"; }
+        catch(e){ alert("Habitica sync failed"); node.querySelector(".tsync").textContent = "⇅"; }
+      });
+
+      listEl.appendChild(node);
+    });
+  }
+
+  $("#addTodo").addEventListener("click", async ()=>{
+    const text = $("#todoText").value.trim(); if(!text) return;
+    await Todos.add(text, $("#todoContext").value, $("#todoEnergy").value);
+    $("#todoText").value = ""; renderList();
+  });
+  $("#todoText").addEventListener("keydown", async (e)=>{
+    if(e.key==="Enter"){ e.preventDefault(); $("#addTodo").click(); }
+  });
+  $("#btnClearDone").addEventListener("click", async ()=>{
+    const items = await Todos.list();
+    for(const it of items) if(it.done) await Todos.remove(it.id);
+    renderList();
+  });
+  $("#btnExport").addEventListener("click", async ()=>{
+    const data = await Todos.list();
+    const blob = new Blob([JSON.stringify({version:VERSION, items:data}, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "field_console_todos.json"; a.click();
+  });
+  $("#btnImport").addEventListener("click", ()=> $("#importFile").click());
+  $("#importFile").addEventListener("change", async (e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(Array.isArray(data.items)) for(const it of data.items) await DB.put('todos', it);
+    renderList();
+  });
+
+  // Quick capture
+  $("#btnQuickCapture").addEventListener("click", ()=>{
+    $("#todoText").focus();
+  });
+  addEventListener("keydown", (e)=>{
+    if(e.key.toLowerCase()==="e" && (e.shiftKey || e.metaKey || e.ctrlKey)){ e.preventDefault(); $("#todoText").focus(); }
+  });
+
+  // Habitica modal
+  const hbModal = document.getElementById("habiticaModal");
+  function openHabiticaModal(){ hbModal.showModal(); }
+  $("#btnHabitica").addEventListener("click", openHabiticaModal);
+  $("#hbSave").addEventListener("click", async (e)=>{
+    e.preventDefault();
+    const u = $("#hbUser").value.trim();
+    const t = $("#hbToken").value.trim();
+    const b = $("#hbUrl").value.trim() || "https://habitica.com/api/v3";
+    if(!u || !t){ alert("User ID and API Token required"); return; }
+    await Habitica.saveCreds(u,t,b);
+    $("#habiticaStatus").textContent = "Saved (not queried)";
+    hbModal.close();
+    try {
+      const st = await Habitica.status();
+      $("#habiticaStatus").textContent = st.ok ? `Connected (Lvl ${st.lvl})` : "Connection failed";
+    } catch(_){}
+  });
+
+  // Status signals
+  function updateSignals(){
+    const sigs = [];
+    // Focus from page visibility + idle time
+    const visible = !document.hidden;
+    const perf = performance.now();
+    const mem = performance?.memory;
+    const lag = (perf - (updateSignals._last||perf)); updateSignals._last = perf;
+
+    $("#kFocus").textContent = visible? "visible":"hidden";
+    $("#kFlow").textContent = (100 - clamp(lag/10, 0, 80)).toFixed(0)+"%";
+
+    sigs.push(h("span",{class:"chip"}, "latency: "+lag.toFixed(0)+"ms"));
+    sigs.push(h("span",{class:"chip"}, "visibility: "+(visible?"yes":"no")));
+    if(mem) sigs.push(h("span",{class:"chip"}, "heap: "+(mem.usedJSHeapSize/1e6).toFixed(1)+"MB"));
+
+    const sb = $("#signalBar"); sb.innerHTML=""; sigs.forEach(s=>sb.append(s));
+  }
+  setInterval(updateSignals, 1500);
+
+  /***************
+   * WebLLM (optional, progressive)
+   * Loads only if requested and available via CDN.
+   ***************/
+  let webllm;
+  $("#btnLLMLoad").addEventListener("click", async ()=>{
+    $("#btnLLMLoad").textContent = "Loading…";
+    try{
+      // Attempt to load ESM from public CDN
+      const mod = await import("https://esm.run/webllm");
+      webllm = mod;
+      $("#btnLLMLoad").textContent = "Loaded";
+      $("#llmOut").textContent = "WebLLM module loaded. Choose a small model in your browser's devtools if needed.";
+    }catch(e){
+      $("#btnLLMLoad").textContent = "Load WebLLM";
+      $("#llmOut").textContent = "Could not load WebLLM from CDN. You can still use the dashboard and Habitica sync offline.";
+    }
+  });
+
+  $("#btnLLMAsk").addEventListener("click", async ()=>{
+    const q = $("#llmInput").value.trim();
+    if(!q){ return; }
+    // Fallback: provide an on-device heuristic nudge if WebLLM not present
+    if(!webllm){
+      const nudge = [
+        "Micro-move: hydrate, breathe 4-6, add a 3-min task to the list.",
+        "Reframe: rename one heavy task to a 5-min scout version.",
+        "Boundaries: 25-min on, 5-min off. One cycle. Then reassess.",
+        "Transmute: convert any irritation to a checklist action.",
+        "Signal clean-up: mute one notification source for an hour."
+      ];
+      $("#llmOut").textContent = `Coach:\n• ${nudge[Math.floor(Math.random()*nudge.length)]}\n\nNote: Load WebLLM for in-browser LLM responses.`;
+      return;
+    }
+    $("#llmOut").textContent = "Thinking…";
+    try{
+      // Minimal example prompt routed through WebLLM (API surface may vary by version)
+      const prompt = `You are a quiet field-lead coach. The user asked: ${q}\nGive one short, actionable nudge that improves coherence within 2 minutes.`;
+      // Example using webllm.CreateMLCEngine if present:
+      const engine = await webllm.CreateMLCEngine({model:"Llama-3.2-1B-Instruct-q4f32_1-MLC"});
+      let out = "";
+      await engine.chat.completions.create({messages:[{role:"user", content: prompt}], stream:true}, ev=>{
+        if(ev.choices?.[0]?.delta?.content){ out += ev.choices[0].delta.content; $("#llmOut").textContent = out; }
+      });
+    }catch(e){
+      $("#llmOut").textContent = "WebLLM API changed or model failed to load. Use the heuristics above or check console.";
+    }
+  });
+
+  /***************
+   * Installable (PWA)
+   ***************/
+  let deferredPrompt;
+  addEventListener("beforeinstallprompt", (e)=>{ e.preventDefault(); deferredPrompt = e; setBadge("swState","installable","var(--ok)"); });
+  $("#btnInstall").addEventListener("click", async ()=>{
+    if(!deferredPrompt){ alert("App not installable yet."); return; }
+    deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null;
+  });
+
+  /***************
+   * Boot
+   ***************/
+  renderList();
+  (async function pollHabitica(){
+    const creds = await Habitica.getCreds();
+    if(!creds) return;
+    try{
+      const st = await Habitica.status();
+      $("#habiticaStatus").textContent = st.ok ? `Connected (Lvl ${st.lvl})` : "Connection failed";
+    }catch(_){}
+  })();
+  </script>
+</body>
+</html>
